@@ -6,9 +6,9 @@ import java.util.Iterator;
 import crux.Token.Kind;
 
 public class Scanner implements Iterable<Token> {
-	public static String studentName = "TODO: YOUR NAME";
-	public static String studentID = "TODO: Your 8-digit id";
-	public static String uciNetID = "TODO: uci-net id";
+	public static String studentName = "Lamar West";
+	public static String studentID = "79872428";
+	public static String uciNetID = "westl";
 
 	private int lineNum;  // current line count
 	private int charPos;  // character offset for current line
@@ -56,6 +56,65 @@ public class Scanner implements Iterable<Token> {
 	 */
 	public Token next() throws IOException
 	{
+		
+		if(lookingForward == false){
+			nextChar = readChar();
+			charPos++;
+		}
+		int currentChar = nextChar;
+		Token tobeReturned = null;
+		//EOF or Null
+		if(currentChar != -1 && currentChar != 0 || sb.length()>0 ){
+			String value = Character.toString ((char)currentChar);
+			//Cool to append as long as it's not a bad char
+			sb.append(value);
+			//System.out.println(sb.toString());
+			while(sb.toString().matches(numbers) || sb.toString().matches(ops) || sb.toString().matches(words)){
+				lookingForward=true;
+				nextChar = readChar();
+				peakCount++;
+				sb.append(Character.toString((char)nextChar));
+			}
+			String spoiledToken = Character.toString((char)sb.charAt(sb.toString().length()-1));
+			lookingForward=false;
+
+			if(spoiledToken.matches(badChars)|| nextChar ==-1)
+				sb.deleteCharAt(sb.toString().length()-1);
+			else
+				sb = new StringBuilder(sb.deleteCharAt(sb.toString().length()-1));
+			//start a new string builder with the valid item so we remove the spoiled token
+			tobeReturned = tokenize(sb.toString());
+			charPos += peakCount;
+			peakCount =0;
+			//since the token that was valid is created, restart the stringbuilder
+			//with the last token we seen
+			if(spoiledToken.contains("\n")){
+				lineNum++;
+				charPos = 1 ;
+				peakCount = 0 ;
+				//System.out.println("NEW LINE REACHED");
+			}
+			sb = new StringBuilder();
+			if(!spoiledToken.matches(badChars) && nextChar != -1){
+				sb.append(spoiledToken);
+			}
+			else
+				return (tobeReturned != null ? tobeReturned :  null);	
+		}
+		else{
+			//must be EOF
+			//EOF is reached yet there are things to be tokenized
+			return new Token("EOF",lineNum,charPos-1);
+		}
+		return tobeReturned;
+	}
+	
+		
+		
+		
+		
+	/*	
+		
 		if(lookingForward == false){
 			nextChar = readChar();
 			charPos++;
@@ -73,8 +132,7 @@ public class Scanner implements Iterable<Token> {
 			//System.out.println(sb.toString());
 			if(sb.toString().matches(numbers) || sb.toString().matches(ops) || sb.toString().matches(words)){
 				//Get another variable
-				lookingForward=true;
-				nextChar = readChar();
+				
 			}
 			//The most recent variable we got spoiled the string, tokenize it after removing the last concatenation
 			else{
@@ -111,7 +169,9 @@ public class Scanner implements Iterable<Token> {
 			return new Token("EOF",lineNum,charPos-1);
 		}
 		return tobeReturned;
-	}
+	}*/
+		
+		
 	public Token tokenize(String tokenName){
 		if(tokenName.equals("EOF"))
 			return getEOFToken();
