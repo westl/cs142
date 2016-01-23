@@ -1,0 +1,308 @@
+package crux;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+public class Parser {
+    public static String studentName = "TODO: Your Name";
+    public static String studentID = "TODO: Your 8-digit id";
+    public static String uciNetID = "TODO: uci-net id";
+    
+// Grammar Rule Reporting ==========================================
+    private int parseTreeRecursionDepth = 0;
+    private StringBuffer parseTreeBuffer = new StringBuffer();
+
+    public void enterRule(NonTerminal nonTerminal) {
+        String lineData = new String();
+        for(int i = 0; i < parseTreeRecursionDepth; i++)
+        {
+            lineData += "  ";
+        }
+        lineData += nonTerminal.name();
+        //System.out.println("descending " + lineData);
+        parseTreeBuffer.append(lineData + "\n");
+        parseTreeRecursionDepth++;
+    }
+    
+    private void exitRule(NonTerminal nonTerminal)
+    {
+        parseTreeRecursionDepth--;
+    }
+    
+    public String parseTreeReport()
+    {
+        return parseTreeBuffer.toString();
+    }
+
+// Error Reporting ==========================================
+    private StringBuffer errorBuffer = new StringBuffer();
+    
+    private String reportSyntaxError(NonTerminal nt)
+    {
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected a token from " + nt.name() + " but got " + currentToken.getKind() + ".]";
+        errorBuffer.append(message + "\n");
+        return message;
+    }
+     
+    private String reportSyntaxError(Token.Kind kind)
+    {
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.getKind() + ".]";
+        errorBuffer.append(message + "\n");
+        return message;
+    }
+    
+    public String errorReport()
+    {
+        return errorBuffer.toString();
+    }
+    
+    public boolean hasError()
+    {
+        return errorBuffer.length() != 0;
+    }
+    
+    private class QuitParseException extends RuntimeException
+    {
+        private static final long serialVersionUID = 1L;
+        public QuitParseException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+    
+    private int lineNumber()
+    {
+        return currentToken.lineNumber();
+    }
+    
+    private int charPosition()
+    {
+        return currentToken.charPosition();
+    }
+          
+// Parser ==========================================
+    private Scanner scanner;
+    private Token currentToken;
+    
+    public Parser(Scanner scanner)
+    {
+        throw new RuntimeException("implement this");
+    }
+    
+    public void parse()
+    {
+        try {
+            program();
+        } catch (QuitParseException q) {
+            errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
+            errorBuffer.append("[Could not complete parsing.]");
+        }
+    }
+    
+// Helper Methods ==========================================
+    private boolean have(Token.Kind kind)
+    {
+        return currentToken.is(kind);
+    }
+    
+    private boolean have(NonTerminal nt)
+    {
+        return nt.firstSet().contains(currentToken.getKind());
+    }
+
+    private boolean accept(Token.Kind kind) throws IOException
+    {
+        if (have(kind)) {
+            currentToken = scanner.next();
+            return true;
+        }
+        return false;
+    }    
+    
+    private boolean accept(NonTerminal nt) throws IOException
+    {
+        if (have(nt)) {
+            currentToken = scanner.next();
+            return true;
+        }
+        return false;
+    }
+   
+    private boolean expect(Token.Kind kind) throws IOException
+    {
+        if (accept(kind))
+            return true;
+        String errorMessage = reportSyntaxError(kind);
+        throw new QuitParseException(errorMessage);
+        //return false;
+    }
+        
+    private boolean expect(NonTerminal nt) throws IOException
+    {
+        if (accept(nt))
+            return true;
+        String errorMessage = reportSyntaxError(nt);
+        throw new QuitParseException(errorMessage);
+        //return false;
+    }
+   
+// Grammar Rules =====================================================
+    
+    // literal := INTEGER | FLOAT | TRUE | FALSE .
+    public void literal() throws IOException
+    {
+    	enterRule(NonTerminal.LITERAL);
+    	expect(Token.Kind.INTEGER);
+    	expect(Token.Kind.FLOAT);
+    	expect(Token.Kind.TRUE);
+    	expect(Token.Kind.FALSE);
+        throw new RuntimeException("implement this");
+    }
+    
+    // designator := IDENTIFIER { "[" expression0 "]" } .
+    public void designator() throws IOException
+    {
+        enterRule(NonTerminal.DESIGNATOR);
+
+        expect(Token.Kind.IDENTIFIER);
+        while (accept(Token.Kind.OPEN_BRACKET)) {
+            expression0();
+            expect(Token.Kind.CLOSE_BRACKET);
+        }
+    
+        exitRule(NonTerminal.DESIGNATOR);
+    }
+    
+    
+    
+    private void type() {
+		// TODO Auto-generated method stub
+		//expects IDENTIFIER
+ 
+	}
+    
+    private void op0() {
+		// TODO Auto-generated method stub
+		//accepts ">=" | "<=" | "!=" | "==" | ">" | "<" .
+	}
+
+	private void op1() {
+		// TODO Auto-generated method stub
+		//accepts "+" | "-" | "or" .
+	}
+
+	
+	private void op2() {
+		// TODO Auto-generated method stub
+		//accepts "*" | "/" | "and" .
+	}
+
+
+	private void expression0() throws IOException {
+		// TODO Auto-generated method stub
+    	expression1();
+		
+	}
+
+	private void expression1() throws IOException {
+		// TODO Auto-generated method stub
+		expression2();
+	}
+
+	private void expression2() throws IOException {
+		// TODO Auto-generated method stub
+		expression3();
+	}
+
+	private void expression3() throws IOException {
+		// TODO Auto-generated method stub
+		
+		expression0();
+		designator();
+		call_expression();
+		literal();
+	}
+
+	private void call_expression() throws IOException {
+		// TODO Auto-generated method stub
+		//accepts ::
+		//expects IDENTIFER
+		//accepts (
+		expression_list();
+		//accepts )
+	}
+
+	private void expression_list() throws IOException {
+		// TODO Auto-generated method stub
+		//accepts [
+		expression0();
+		//accepts {
+		//accepts ,
+		expression0();
+		//accepts ] 
+
+	}
+	
+	
+	private void parameter() {
+		// TODO Auto-generated method stub
+		//expects IDENTIFIER
+		//accepts :
+		//expects type
+	}
+
+	private void parameter_list() {
+		// TODO Auto-generated method stub
+		//expects open_bracket
+		//
+	}
+	
+	private void variable_declaration(){
+		//accepts var
+		//expects IDENTIFIER
+		//accepts :
+		//expects type
+		//accepts ;
+	}
+	
+	private void array_declaration(){
+		//accepts array
+		//expects IDENTIFIER
+		//accepts :
+		//expects type
+		//accepts [
+		//expects INTEGER
+		//accepts ]
+		//expects open brace
+		//accepts [
+		//expects INTEGER
+		//accepts ]
+		//expects }
+		//accepts ;
+	}
+	
+	private void function_definition(){
+		
+	}
+	
+	private void declaration(){
+		
+	}
+	
+	private void declaration_list(){}
+	private void assignment_statement(){}
+	private void call_statement(){}
+	private void if_statement(){}
+	private void while_statement(){}
+	private void return_statement(){}
+	private void statement(){}
+	private void statement_list(){}
+	private void statement_block(){}
+	// program := declaration-list EOF .
+    public void program()
+    {
+        throw new RuntimeException("implement all the grammar rules");
+    }
+    
+}

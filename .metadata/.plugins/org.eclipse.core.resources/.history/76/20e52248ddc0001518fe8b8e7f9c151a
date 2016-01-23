@@ -1,0 +1,386 @@
+package crux;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+public class Parser {
+    public static String studentName = "TODO: Your Name";
+    public static String studentID = "TODO: Your 8-digit id";
+    public static String uciNetID = "TODO: uci-net id";
+    
+// Grammar Rule Reporting ==========================================
+    private int parseTreeRecursionDepth = 0;
+    private StringBuffer parseTreeBuffer = new StringBuffer();
+
+    public void enterRule(NonTerminal nonTerminal) {
+        String lineData = new String();
+        for(int i = 0; i < parseTreeRecursionDepth; i++)
+        {
+            lineData += "  ";
+        }
+        lineData += nonTerminal.name();
+        //System.out.println("descending " + lineData);
+        parseTreeBuffer.append(lineData + "\n");
+        parseTreeRecursionDepth++;
+    }
+    
+    private void exitRule(NonTerminal nonTerminal)
+    {
+        parseTreeRecursionDepth--;
+    }
+    
+    public String parseTreeReport()
+    {
+        return parseTreeBuffer.toString();
+    }
+
+// Error Reporting ==========================================
+    private StringBuffer errorBuffer = new StringBuffer();
+    
+    private String reportSyntaxError(NonTerminal nt)
+    {
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected a token from " + nt.name() + " but got " + currentToken.getKind().name() + ".]";
+        errorBuffer.append(message + "\n");
+        return message;
+    }
+     
+    private String reportSyntaxError(Token.Kind kind)
+    {
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.getKind().name() + ".]";
+        errorBuffer.append(message + "\n");
+        return message;
+    }
+    
+    public String errorReport()
+    {
+        return errorBuffer.toString();
+    }
+    
+    public boolean hasError()
+    {
+        return errorBuffer.length() != 0;
+    }
+    
+    private class QuitParseException extends RuntimeException
+    {
+        private static final long serialVersionUID = 1L;
+        public QuitParseException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+    
+    private int lineNumber()
+    {
+        return currentToken.lineNumber();
+    }
+    
+    private int charPosition()
+    {
+        return currentToken.charPosition();
+    }
+          
+// Parser ==========================================
+    private Scanner scanner;
+    private Token currentToken;
+    
+    public Parser(Scanner scanner) throws IOException
+    {
+        this.scanner = scanner;
+        this.currentToken = scanner.next();
+    }
+    
+    public void parse() throws IOException
+    {
+        try {
+            program();
+        } catch (QuitParseException q) {
+            errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
+            errorBuffer.append("[Could not complete parsing.]");
+        }
+    }
+    
+// Helper Methods ==========================================
+    private boolean have(Token.Kind kind)
+    {
+        return currentToken.is(kind);
+    }
+    
+    private boolean have(NonTerminal nt)
+    {
+        return nt.firstSet().contains(currentToken.getKind());
+    }
+
+    private boolean accept(Token.Kind kind) throws IOException
+    {
+        if (have(kind)) {
+            currentToken = scanner.next();
+            System.out.println(currentToken);
+            return true;
+        }
+        return false;
+    }    
+    
+    private boolean accept(NonTerminal nt) throws IOException
+    {
+        if (have(nt)) {
+            currentToken = scanner.next();
+            System.out.println(currentToken);
+            return true;
+        }
+        return false;
+    }
+   
+    private boolean expect(Token.Kind kind) throws IOException
+    {
+        if (accept(kind))
+            return true;
+        String errorMessage = reportSyntaxError(kind);
+        throw new QuitParseException(errorMessage);
+        //return false;
+    }
+        
+    private boolean expect(NonTerminal nt) throws IOException
+    {
+        if (accept(nt))
+            return true;
+        String errorMessage = reportSyntaxError(nt);
+        throw new QuitParseException(errorMessage);
+        //return false;
+    }
+   
+// Grammar Rules =====================================================
+    
+    // literal := INTEGER | FLOAT | TRUE | FALSE .
+    public void literal() throws IOException
+    {
+    	enterRule(NonTerminal.LITERAL);
+    	expect(Token.Kind.INTEGER);
+    	expect(Token.Kind.FLOAT);
+    	expect(Token.Kind.TRUE);
+    	expect(Token.Kind.FALSE);
+    	exitRule(NonTerminal.LITERAL);
+    }
+    
+    // designator := IDENTIFIER { "[" expression0 "]" } .
+    public void designator() throws IOException
+    {
+        enterRule(NonTerminal.DESIGNATOR);
+
+        expect(Token.Kind.IDENTIFIER);
+        while (accept(Token.Kind.OPEN_BRACKET)) {
+            expression0();
+            expect(Token.Kind.CLOSE_BRACKET);
+        }
+    
+        exitRule(NonTerminal.DESIGNATOR);
+    }
+    
+    
+    
+    private void type() {
+		// TODO Auto-generated method stub
+		//expects IDENTIFIER
+		enterRule(NonTerminal.TYPE);
+		exitRule(NonTerminal.TYPE);
+	}
+    
+    private void op0() {
+		// TODO Auto-generated method stub
+		//accepts ">=" | "<=" | "!=" | "==" | ">" | "<" .
+		enterRule(NonTerminal.OP0);
+		exitRule(NonTerminal.OP0);
+	}
+
+	private void op1() {
+		// TODO Auto-generated method stub
+		//accepts "+" | "-" | "or" .
+		enterRule(NonTerminal.OP1);
+		exitRule(NonTerminal.OP1);
+	}
+
+	
+	private void op2() {
+		// TODO Auto-generated method stub
+		//accepts "*" | "/" | "and" .
+		enterRule(NonTerminal.OP2);
+		exitRule(NonTerminal.OP2);
+	}
+
+
+	private void expression0() throws IOException {
+		// TODO Auto-generated method stub
+		enterRule(NonTerminal.EXPRESSION0);
+		exitRule(NonTerminal.EXPRESSION0);
+		
+	}
+
+	private void expression1() throws IOException {
+		// TODO Auto-generated method stub
+		enterRule(NonTerminal.EXPRESSION1);
+		exitRule(NonTerminal.EXPRESSION1);
+	}
+	
+	//expression2 := expression3 { op2 expression3 } .
+	private void expression2() throws IOException {
+		// TODO Auto-generated method stub
+		enterRule(NonTerminal.EXPRESSION2);
+		expression3();
+		op2();
+		exitRule(NonTerminal.EXPRESSION2);
+	}
+
+	/*
+	 * expression3 := "not" expression3
+       | "(" expression0 ")"
+       | designator
+       | call-expression
+       | literal .
+	 */
+	private void expression3() throws IOException {
+		// TODO Auto-generated method stub
+		enterRule(NonTerminal.EXPRESSION3);
+		expression0();
+		designator();
+		call_expression();
+		literal();
+		exitRule(NonTerminal.EXPRESSION3);
+	}
+
+	//call-expression := "::" IDENTIFIER "(" expression-list ")" .
+	private void call_expression() throws IOException {
+		enterRule(NonTerminal.CALL_EXPRESSION);
+		expression_list();
+		exitRule(NonTerminal.CALL_EXPRESSION);
+	}
+	//expression-list := [ expression0 { "," expression0 } ] .
+	private void expression_list() throws IOException {
+		enterRule(NonTerminal.EXPRESSION_LIST);
+		expression0();
+		exitRule(NonTerminal.EXPRESSION_LIST);
+	}
+	
+	//parameter := IDENTIFIER ":" type .
+	private void parameter() {
+		enterRule(NonTerminal.PARAMETER);
+		type();
+		exitRule(NonTerminal.PARAMETER);
+	}
+
+	//parameter-list := [ parameter { "," parameter } ] .
+	private void parameter_list() {
+		enterRule(NonTerminal.PARAMETER_LIST);
+		parameter();
+		exitRule(NonTerminal.PARAMETER_LIST);
+	}
+	
+	//variable-declaration := "var" IDENTIFIER ":" type ";"
+	private void variable_declaration(){
+		enterRule(NonTerminal.VARIABLE_DECLARATION);
+		exitRule(NonTerminal.VARIABLE_DECLARATION);
+	}
+	
+	//array-declaration := "array" IDENTIFIER ":" type "[" INTEGER "]" { "[" INTEGER "]" } ";"
+	private void array_declaration(){
+		enterRule(NonTerminal.ARRAY_DECLARATION);
+		type();
+		exitRule(NonTerminal.ARRAY_DECLARATION);
+	}
+	
+	//function-definition := "func" IDENTIFIER "(" parameter-list ")" ":" type statement-block .
+	private void function_definition(){
+		enterRule(NonTerminal.FUNCTION_DEFINITION);
+		parameter_list();
+		type();
+		statement_block();
+		exitRule(NonTerminal.FUNCTION_DEFINITION);
+	}
+	
+	//declaration := variable-declaration | array-declaration | function-definition .
+	private void declaration(){
+	   enterRule(NonTerminal.DECLARATION);
+	   variable_declaration();
+	   array_declaration();
+	   function_definition();
+		exitRule(NonTerminal.DECLARATION);
+	}
+	
+	//declaration-list := { declaration } .
+	private void declaration_list(){
+		enterRule(NonTerminal.DECLARATION_LIST);
+		declaration();
+		exitRule(NonTerminal.DECLARATION_LIST);
+		
+	}
+	//assignment-statement := "let" designator "=" expression0 ";"
+	private void assignment_statement() throws IOException{
+		enterRule(NonTerminal.ASSIGNMENT_STATEMENT);
+		designator();
+		expression0();
+		exitRule(NonTerminal.ASSIGNMENT_STATEMENT);
+	}
+	//call-statement := call-expression ";"
+	private void call_statement() throws IOException{
+		enterRule(NonTerminal.CALL_STATEMENT);
+		call_expression();
+		exitRule(NonTerminal.CALL_STATEMENT);
+	}
+	//if-statement := "if" expression0 statement-block [ "else" statement-block ] .
+	private void if_statement() throws IOException{
+		enterRule(NonTerminal.IF_STATEMENT);
+		expression0();
+		statement_block();
+		exitRule(NonTerminal.IF_STATEMENT);
+	}
+	//while-statement := "while" expression0 statement-block .
+	private void while_statement() throws IOException{
+		enterRule(NonTerminal.WHILE_STATEMENT);
+		expression0();
+		statement_block();
+		exitRule(NonTerminal.WHILE_STATEMENT);
+	}
+	//return-statement := "return" expression0 ";" .
+	private void return_statement() throws IOException{
+		enterRule(NonTerminal.RETURN_STATEMENT);
+		expression0();
+		exitRule(NonTerminal.RETURN_STATEMENT);
+	}
+	/*statement := variable-declaration
+           | call-statement
+           | assignment-statement
+           | if-statement
+           | while-statement
+           | return-statement .*/
+	private void statement() throws IOException{
+		enterRule(NonTerminal.STATEMENT);
+		call_statement();
+		assignment_statement();
+		if_statement();
+		while_statement();
+		return_statement();
+		exitRule(NonTerminal.STATEMENT);
+	}
+	//statement-list := { statement } .
+	private void statement_list(){
+		enterRule(NonTerminal.STATEMENT_LIST);
+		statement();
+		exitRule(NonTerminal.STATEMENT_LIST);
+	}
+	//statement-block := "{" statement-list "}" .
+	private void statement_block(){
+		enterRule(NonTerminal.STATEMENT_BLOCK);
+		statement_list();
+		exitRule(NonTerminal.STATEMENT_BLOCK);
+	}
+	// program := declaration-list EOF .
+    public void program() throws IOException
+    {
+    	enterRule(NonTerminal.PROGRAM);
+       // if(expect(NonTerminal.DECLARATION_LIST))
+        	declaration_list();
+        //expect(Token.Kind.EOF);
+        exitRule(NonTerminal.PROGRAM);
+    }
+    
+}
