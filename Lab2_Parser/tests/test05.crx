@@ -1,5 +1,3 @@
-// test expression
-
 func main() : void {
   let a = 4 * 4;
   let b = 4 and 4;

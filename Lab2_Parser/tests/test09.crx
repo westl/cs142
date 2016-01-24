@@ -1,5 +1,3 @@
-// test declaration list
-
 var a : int;
 var b : float;
 array x : int[0];

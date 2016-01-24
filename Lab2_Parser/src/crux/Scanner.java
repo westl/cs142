@@ -21,7 +21,7 @@ public class Scanner implements Iterable<Token> {
 	//For characters such as new line and spaces
 	private String badChars = "\\n\\s\\r*|\\s";
 	//For any tokens that may be operators
-	private String ops = "[<>=:,!;][=:]?";
+	private String ops = "[\\/\\-\\]+*&\\[\\(\\)<\\{\\}>=:,!;][=:]?";
 	//For any words 
 	private String words = "[{}a-zA-Z]+";
 	//For any numbers 
@@ -45,9 +45,15 @@ public class Scanner implements Iterable<Token> {
 
 	private int readChar() throws IOException {
 		int currentChar = input.read();
-		while(currentChar == 32 && sb.length() == 0 )
+		while( (currentChar == 32 && sb.length() == 0)  || (currentChar == 10 && sb.length() == 0) ){
+	
+			charPos++;
+			if(currentChar == 10){
+				lineNum++;
+				charPos = 0;
+			}
 			currentChar = input.read();
-			
+		}
 		return currentChar;
 	}
 

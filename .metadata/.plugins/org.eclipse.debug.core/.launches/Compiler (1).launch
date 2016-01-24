@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="crux.Compiler"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="tests/test01.crx"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="tests/test15.crx"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Lab2_Parser"/>
 </launchConfiguration>

@@ -1,5 +1,3 @@
-// nesting
-
 func main() : void {
 
   while true {

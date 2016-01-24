@@ -1,5 +1,3 @@
-// test while
-
 func main() : void {
   while (true) {
     ::nothing();

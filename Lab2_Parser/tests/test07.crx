@@ -1,5 +1,3 @@
-// test call expression
-
 func main() : void {
   ::foo();
   ::foo(3);

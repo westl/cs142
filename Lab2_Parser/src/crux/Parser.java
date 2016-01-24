@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import jdk.nashorn.internal.parser.TokenKind;
+import crux.Token.Kind;
+
 public class Parser {
 	public static String studentName = "Lamar West";
 	public static String studentID = "79872428";
@@ -48,7 +51,7 @@ public class Parser {
 
 	private String reportSyntaxError(Token.Kind kind)
 	{
-		String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.getKind().name() + ".]";
+		String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind.name() + " but got " + currentToken.getKind().name() + ".]";
 		errorBuffer.append(message + "\n");
 		return message;
 	}
@@ -160,10 +163,18 @@ public class Parser {
 	public void literal() throws IOException
 	{
 		enterRule(NonTerminal.LITERAL);
-		expect(Token.Kind.INTEGER);
-		expect(Token.Kind.FLOAT);
-		expect(Token.Kind.TRUE);
-		expect(Token.Kind.FALSE);
+		if(currentToken.kind.name().equals("INTEGER")){
+			accept(Token.Kind.INTEGER);
+		}
+		else if(currentToken.kind.name().equals("FLOAT")){
+			accept(Token.Kind.FLOAT);
+		}
+		else if(currentToken.kind.name().equals("TRUE")){
+			accept(Token.Kind.TRUE);
+		}
+		else if(currentToken.kind.name().equals("FALSE")){
+			accept(Token.Kind.FALSE);
+		}
 		exitRule(NonTerminal.LITERAL);
 	}
 
@@ -192,26 +203,44 @@ public class Parser {
 	}
 
 	//op0 := ">=" | "<=" | "!=" | "==" | ">" | "<" .
-	private void op0() {
+	private void op0() throws IOException {
 		// TODO Auto-generated method stub
 		//accepts ">=" | "<=" | "!=" | "==" | ">" | "<" .
 		enterRule(NonTerminal.OP0);
+		if(NonTerminal.OP0.firstSet.contains(currentToken.kind)){
+			accept(currentToken.kind);
+		}
+		else{
+			reportError(currentToken.kind);
+		}
 		exitRule(NonTerminal.OP0);
 	}
 
 	//op1 := "+" | "-" | "or" .
-	private void op1() {
+	private void op1() throws IOException {
 		// TODO Auto-generated method stub
 		//accepts "+" | "-" | "or" .
 		enterRule(NonTerminal.OP1);
+		if(NonTerminal.OP1.firstSet.contains(currentToken.kind)){
+			accept(currentToken.kind);
+		}
+		else{
+			reportError(currentToken.kind);
+		}
 		exitRule(NonTerminal.OP1);
 	}
 
 	//op2 := "*" | "/" | "and" .
-	private void op2() {
+	private void op2() throws IOException {
 		// TODO Auto-generated method stub
 		//accepts "*" | "/" | "and" .
 		enterRule(NonTerminal.OP2);
+		if(NonTerminal.OP2.firstSet.contains(currentToken.kind)){
+			accept(currentToken.kind);
+		}
+		else{
+			reportError(currentToken.kind);
+		}
 		exitRule(NonTerminal.OP2);
 	}
 
@@ -219,8 +248,13 @@ public class Parser {
 	private void expression0() throws IOException {
 		// TODO Auto-generated method stub
 		enterRule(NonTerminal.EXPRESSION0);
-		//expression1();
-		//op0();
+		expression1();
+		if(!currentToken.is(Token.Kind.SEMICOLON)){
+			if(NonTerminal.OP0.firstSet.contains(currentToken.kind)){
+				op0();
+				expression1();
+			}
+		}
 		exitRule(NonTerminal.EXPRESSION0);
 
 	}
@@ -228,8 +262,11 @@ public class Parser {
 	private void expression1() throws IOException {
 		// TODO Auto-generated method stub
 		enterRule(NonTerminal.EXPRESSION1);
-		//expression2();
-		//op1();
+		expression2();
+		while(NonTerminal.OP1.firstSet.contains(currentToken.kind)){
+			op1();
+			expression2();
+		}
 		exitRule(NonTerminal.EXPRESSION1);
 	}
 
@@ -237,8 +274,11 @@ public class Parser {
 	private void expression2() throws IOException {
 		// TODO Auto-generated method stub
 		enterRule(NonTerminal.EXPRESSION2);
-		//expression3();
-		//op2();
+		expression3();
+		while(NonTerminal.OP2.firstSet.contains(currentToken.kind)){
+			op2();
+			expression3();
+		}
 		exitRule(NonTerminal.EXPRESSION2);
 	}
 
@@ -252,23 +292,48 @@ public class Parser {
 	private void expression3() throws IOException {
 		// TODO Auto-generated method stub
 		enterRule(NonTerminal.EXPRESSION3);
-		//expression0();
-		//designator();
-		//call_expression();
-		//literal();
+		if(currentToken.kind.name().equals("NOT")){
+			accept(Token.Kind.NOT);
+			expression3();
+		}
+		else if(currentToken.kind.name().equals("OPEN_PAREN")){
+			accept(Token.Kind.OPEN_PAREN);
+			expression0();
+			expect(Token.Kind.CLOSE_PAREN);
+		}
+		else if(currentToken.kind.name().equals("IDENTIFIER")){
+			designator();
+		}
+		else if(currentToken.kind.name().equals("CALL")){
+			call_expression();
+		}
+		else if(currentToken.kind.name().equals("INTEGER") || currentToken.kind.name().equals("FLOAT") || currentToken.kind.name().equals("TRUE") || currentToken.kind.name().equals("FALSE")){
+			literal();
+		}
 		exitRule(NonTerminal.EXPRESSION3);
 	}
 
 	//call-expression := "::" IDENTIFIER "(" expression-list ")" .
 	private void call_expression() throws IOException {
 		enterRule(NonTerminal.CALL_EXPRESSION);
-		//expression_list();
+		expect(Token.Kind.CALL);
+		expect(Token.Kind.IDENTIFIER);
+		expect(Token.Kind.OPEN_PAREN);
+		expression_list();
+		expect(Token.Kind.CLOSE_PAREN);
 		exitRule(NonTerminal.CALL_EXPRESSION);
 	}
 	//expression-list := [ expression0 { "," expression0 } ] .
 	private void expression_list() throws IOException {
 		enterRule(NonTerminal.EXPRESSION_LIST);
 		//expression0();
+		if(!currentToken.kind.name().equals("CLOSE_PAREN")){
+			expression0();
+			while(!currentToken.kind.name().equals("CLOSE_PAREN")){
+				expect(Token.Kind.COMMA);
+				expression0();
+			}
+		}
 		exitRule(NonTerminal.EXPRESSION_LIST);
 	}
 
@@ -294,15 +359,32 @@ public class Parser {
 	}
 
 	//variable-declaration := "var" IDENTIFIER ":" type ";"
-	private void variable_declaration(){
+	private void variable_declaration() throws IOException{
 		enterRule(NonTerminal.VARIABLE_DECLARATION);
+		accept(Token.Kind.VAR);
+		expect(Token.Kind.IDENTIFIER);
+		expect(Token.Kind.COLON);
+		type();
+		expect(Token.Kind.SEMICOLON);
 		exitRule(NonTerminal.VARIABLE_DECLARATION);
 	}
 
 	//array-declaration := "array" IDENTIFIER ":" type "[" INTEGER "]" { "[" INTEGER "]" } ";"
-	private void array_declaration(){
+	private void array_declaration() throws IOException{
 		enterRule(NonTerminal.ARRAY_DECLARATION);
-		//type();
+		accept(Token.Kind.ARRAY);
+		expect(Token.Kind.IDENTIFIER);
+		expect(Token.Kind.COLON);
+		type();
+		expect(Token.Kind.OPEN_BRACKET);
+		expect(Token.Kind.INTEGER);
+		expect(Token.Kind.CLOSE_BRACKET);
+		while(currentToken.kind.name().equals("OPEN_BRACKET")){
+			accept(Token.Kind.OPEN_BRACKET);
+			expect(Token.Kind.INTEGER);
+			expect(Token.Kind.CLOSE_BRACKET);
+		}
+		expect(Token.Kind.SEMICOLON);
 		exitRule(NonTerminal.ARRAY_DECLARATION);
 	}
 
@@ -336,50 +418,60 @@ public class Parser {
 		else{
 			reportError(token.kind);
 		}
-		//ariable_declaration();
-		//array_declaration();
-		//function_definition();
 		exitRule(NonTerminal.DECLARATION);
 	}
 
 	//declaration-list := { declaration } .
 	private void declaration_list() throws IOException{
 		enterRule(NonTerminal.DECLARATION_LIST);
-		declaration();
+		while(NonTerminal.DECLARATION.firstSet.contains(currentToken.kind))
+			declaration();
 		exitRule(NonTerminal.DECLARATION_LIST);
 
 	}
 	//assignment-statement := "let" designator "=" expression0 ";"
 	private void assignment_statement() throws IOException{
 		enterRule(NonTerminal.ASSIGNMENT_STATEMENT);
-		//designator();
-		//expression0();
+		expect(Token.Kind.LET);
+		designator();
+		expect(Token.Kind.ASSIGN);
+		expression0();
+		expect(Token.Kind.SEMICOLON);
 		exitRule(NonTerminal.ASSIGNMENT_STATEMENT);
 	}
 	//call-statement := call-expression ";"
 	private void call_statement() throws IOException{
 		enterRule(NonTerminal.CALL_STATEMENT);
-		//call_expression();
+		call_expression();
+		expect(Token.Kind.SEMICOLON);
 		exitRule(NonTerminal.CALL_STATEMENT);
 	}
 	//if-statement := "if" expression0 statement-block [ "else" statement-block ] .
 	private void if_statement() throws IOException{
 		enterRule(NonTerminal.IF_STATEMENT);
-		//expression0();
-		//statement_block();
+		expect(Token.Kind.IF);
+		expression0();
+		statement_block();
+		if(currentToken.kind.name().equals("ELSE")){
+			accept(Token.Kind.ELSE);
+			statement_block();
+		}
 		exitRule(NonTerminal.IF_STATEMENT);
 	}
 	//while-statement := "while" expression0 statement-block .
 	private void while_statement() throws IOException{
 		enterRule(NonTerminal.WHILE_STATEMENT);
-		//expression0();
-		//statement_block();
+		expect(Token.Kind.WHILE);
+		expression0();
+		statement_block();
 		exitRule(NonTerminal.WHILE_STATEMENT);
 	}
 	//return-statement := "return" expression0 ";" .
 	private void return_statement() throws IOException{
 		enterRule(NonTerminal.RETURN_STATEMENT);
-		//expression0();
+		expect(Token.Kind.RETURN);
+		expression0();
+		expect(Token.Kind.SEMICOLON);
 		exitRule(NonTerminal.RETURN_STATEMENT);
 	}
 	/*statement := variable-declaration
@@ -393,30 +485,31 @@ public class Parser {
 		if(currentToken.getKind().name().equals("VAR")){
 			variable_declaration();
 		}
-		if(currentToken.getKind().name().equals("CALL")){
+		else if(currentToken.getKind().name().equals("CALL")){
 			call_statement();
 		}
-		if(currentToken.getKind().name().equals("ASSIGN")){
+		else if(currentToken.getKind().name().equals("LET")){
 			assignment_statement();
 		}
-		if(currentToken.getKind().name().equals("IF")){
+		else if(currentToken.getKind().name().equals("IF")){
 			if_statement();
 		}
-		if(currentToken.getKind().name().equals("WHILE")){
+		else if(currentToken.getKind().name().equals("WHILE")){
 			while_statement();
 		}
-		if(currentToken.getKind().name().equals("RETURN")){
+		else if(currentToken.getKind().name().equals("RETURN")){
 			return_statement();
 		}
 		else{
-			reportError(currentToken.kind);
+			reportError(Token.Kind.CLOSE_BRACE);
 		}
+
 		exitRule(NonTerminal.STATEMENT);
 	}
 	//statement-list := { statement } .
 	private void statement_list() throws IOException{
 		enterRule(NonTerminal.STATEMENT_LIST);
-		while(accept(NonTerminal.STATEMENT))
+		while(this.currentToken.kind != Token.Kind.CLOSE_BRACE)
 			statement();
 		exitRule(NonTerminal.STATEMENT_LIST);
 	}
