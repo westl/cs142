@@ -165,6 +165,7 @@ public enum NonTerminal {
         private static final long serialVersionUID = 1L;
         {
             addAll(VARIABLE_DECLARATION.firstSet);
+            addAll(ASSIGNMENT_STATEMENT.firstSet);
             
         }}),
     STATEMENT_LIST(new HashSet<Token.Kind>() {

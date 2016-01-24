@@ -23,7 +23,7 @@ public class Scanner implements Iterable<Token> {
 	//For any tokens that may be operators
 	private String ops = "[<>=:,!;][=:]?";
 	//For any words 
-	private String words = "[a-zA-Z]+";
+	private String words = "[{}a-zA-Z]+";
 	//For any numbers 
 	private String numbers ="(?:\\d+)\\.?\\d*";
 	//For when we have to look forward 
@@ -45,6 +45,9 @@ public class Scanner implements Iterable<Token> {
 
 	private int readChar() throws IOException {
 		int currentChar = input.read();
+		while(currentChar == 32 && sb.length() == 0 )
+			currentChar = input.read();
+			
 		return currentChar;
 	}
 
