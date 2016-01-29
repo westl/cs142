@@ -1,0 +1,9 @@
+var foo : int;
+
+func foo() : void {
+  ::println();
+}
+
+func main() : void {
+  ::println();
+}

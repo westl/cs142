@@ -1,0 +1,4 @@
+func foo(a:int) : void {
+  var a : float;
+  ::println();
+}
