@@ -1,3 +1,5 @@
+// shadow global with local
+
 var a : int;
 
 func main() : void {

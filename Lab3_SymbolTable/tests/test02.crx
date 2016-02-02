@@ -1,3 +1,5 @@
+// test redefinition
+
 var a: int;
 var a:float;
 

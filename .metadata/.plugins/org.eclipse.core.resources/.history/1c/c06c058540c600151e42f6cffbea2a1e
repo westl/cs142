@@ -1,0 +1,230 @@
+package crux;
+
+import crux.Token.Kind;
+
+public class Token {
+	public static String studentName = "Lamar West";
+	public static String studentID = "79872428";
+	public static String uciNetID = "westl";
+
+	
+	
+
+	//For any words 
+	private static String words = "[a-zA-Z]+";
+	//For any numbers 
+	private static String numbers ="(?:\\d+)\\.?\\d*";
+	//Enums create methods such as Values() that we can use to help us later on. 
+	//It doesn't make sense to have any SET methods in the enums because
+	//the advantage of enums is to know the values of them at compile time.
+	
+	
+	public static enum Kind {
+		AND("and"),	
+		OR("or"),
+		NOT("not"),
+		LET("let"),
+		VAR("var"),
+		ARRAY("array"),
+		FUNC("func"),
+		IF("if"),
+		ELSE("else"),
+		WHILE("while"),
+		TRUE("true"),
+		FALSE("false"),
+		RETURN("return"),
+
+		ADD("+"),
+		SUB("-"),
+		MUL("*"),
+		DIV("/"),
+		OPEN_PAREN("("),
+		CLOSE_PAREN(")"),
+		OPEN_BRACE("{"),
+		CLOSE_BRACE("}"),
+		OPEN_BRACKET("["),
+		CLOSE_BRACKET("]"),
+		GREATER_EQUAL(">="),
+		LESSER_EQUAL("<="),	
+		NOT_EQUAL("!="),	
+		EQUAL("=="),	
+		GREATER_THAN(">"),		 
+		LESS_THAN("<"),
+		ASSIGN("="),		
+		COMMA(","),		
+		SEMICOLON(";"),
+		COLON(":"),
+		CALL("::"),
+
+
+		IDENTIFIER(),
+		INTEGER(),
+		FLOAT(),
+		ERROR(),
+		EOF();
+
+		// TODO: complete the list of possible tokens
+
+		private String default_lexeme;
+
+		Kind()
+		{
+			this.default_lexeme = null;
+		}
+
+		Kind(String lexeme)
+		{
+			this.default_lexeme = lexeme;
+		}
+
+		public boolean hasStaticLexeme()
+		{
+			return default_lexeme != null;
+		}
+
+		// OPTIONAL: if you wish to also make convenience functions, feel free
+		//           for example, boolean matches(String lexeme)
+		//           can report whether a Token.Kind has the given lexeme
+		boolean matches(String lexeme){
+			boolean toReturn = false;
+			if(this.toString().equals(lexeme))
+				return toReturn= true;
+			return toReturn;
+		}
+
+		public String toString(){
+			return default_lexeme;
+		}
+
+		//Getters
+
+		//this gets the value of the Enum
+		public String getLexeme(){
+			return this.default_lexeme;
+		}
+
+		public String getName(){
+			return this.name();
+		}
+		
+		
+		
+
+		public static Kind getKind(String lexeme){	
+			for(Kind k : Kind.values()){
+				if(lexeme.equals(k.toString()))
+					return k;
+			}
+
+			if(lexeme.matches(words) && !lexeme.contains("EOF")){
+				return Kind.IDENTIFIER;
+			}
+				
+			else if(lexeme.matches(numbers)){
+				if(lexeme.contains("."))
+					return Kind.FLOAT;
+				else
+					return Kind.INTEGER;
+			}else{System.out.println(lexeme);}
+			return null;
+		}
+	}
+	
+	
+	private int lineNum;
+	private int charPos;
+	Kind kind;
+	private String lexeme = "";
+
+	@SuppressWarnings("unused")
+	private Token(int lineNum, int charPos)
+	{
+		this.lineNum = lineNum;
+		this.charPos = charPos;
+
+		// if we don't match anything, signal error
+		this.kind = Kind.ERROR;
+		this.lexeme = "No Lexeme Given";
+	}
+
+	public Token(String lexeme, int lineNum, int charPos)
+	{
+		this.lineNum = lineNum;
+		this.charPos = charPos;
+		// TODO: based on the given lexeme determine and set the actual kind
+		Kind toSet = Kind.getKind(lexeme);
+		if(toSet != null){
+			this.kind = toSet;
+			this.lexeme = lexeme;
+		}
+		else{
+			// if we don't match anything, signal error
+			if(lexeme.equals("EOF"))
+			{
+				this.kind = Kind.EOF;
+				this.lexeme = null;
+			}else{
+				this.kind = Kind.ERROR;
+				this.lexeme = "Unrecognized lexeme: " + lexeme;
+			}
+
+		}
+	}
+
+	public int lineNumber()
+	{
+		return lineNum;
+	}
+
+	public int charPosition()
+	{
+		return charPos;
+	}
+
+	// Return the lexeme representing or held by this token
+	public String lexeme()
+	{
+		// TODO: implement
+		return this.lexeme;
+	}
+
+	public String toString()
+	{
+		String toPrint = "";
+		if(kind.hasStaticLexeme() || this.lexeme == null){ //we just print out the name,lineNum and charPos
+			toPrint = this.getName()+"(lineNum:"+this.lineNumber()+", "+"charPos:"+this.charPosition()+")";
+		}
+		else{
+			toPrint = this.getName()+"("+this.getLexeme()+")"+"(lineNum:"+this.lineNumber()+", "+"charPos:"+this.charPosition()+")";
+		}
+		// TODO: implement this
+		return toPrint;
+	}
+	//SETTERs
+	public void setLexeme(String lexeme){
+		this.lexeme = lexeme;
+	}
+
+	public void setKind(Kind toSet){
+		this.kind = toSet;
+	}
+
+	//GETTERS
+	public String getLexeme(){
+		return this.lexeme;
+	}
+
+	public Kind getKind(){
+		return this.kind;
+	}
+
+	public String getName(){
+		return this.kind.getName();
+	}
+
+	public boolean is(Kind kind2) {
+
+		return kind2.name().equals(this.kind.name());
+	}
+
+}

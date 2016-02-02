@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Stack;
 
 public class Parser {
-    public static String studentName = "TODO: Your Name";
-    public static String studentID = "TODO: Your 8-digit id";
-    public static String uciNetID = "TODO: uci-net id";
+	public static String studentName = "Lamar West";
+	public static String studentID = "79872428";
+	public static String uciNetID = "westl";
     
 // SymbolTable Management ==========================
     private SymbolTable symbolTable;

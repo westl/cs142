@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename field &apos;didNotfind&apos; in &apos;crux.SymbolTable&apos; to &apos;didNotFind&apos;&#x0D;&#x0A;- Original project: &apos;Lab3_SymbolTable&apos;&#x0D;&#x0A;- Original element: &apos;crux.SymbolTable.didNotfind&apos;&#x0D;&#x0A;- Renamed element: &apos;crux.SymbolTable.didNotFind&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" delegate="false" deprecate="false" description="Rename field &apos;didNotfind&apos;" flags="589830" getter="false" id="org.eclipse.jdt.ui.rename.field" input="/src&lt;crux{SymbolTable.java[SymbolTable^didNotfind" name="didNotFind" references="true" setter="false" stamp="1454039150003" textual="false" version="1.0"/>
+</session>

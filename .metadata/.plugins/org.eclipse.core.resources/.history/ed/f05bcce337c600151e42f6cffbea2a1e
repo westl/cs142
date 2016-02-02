@@ -1,0 +1,81 @@
+package crux;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+
+public class SymbolTable {
+	LinkedList<Map<String,Symbol>> table;
+
+	public SymbolTable()
+	{
+		table = new LinkedList<Map<String,Symbol>>();
+	}
+
+	public Symbol lookup(String name) throws SymbolNotFoundError
+	{
+		Symbol toReturn = null;
+		Map<String,Symbol> innerTable;
+		for(Iterator<Map<String,Symbol>> it = table.iterator(); it.hasNext() ;  innerTable = it.next()){
+			if(innerTable.containsKey(name)){
+				toReturn = innerTable.get(name);
+				break;
+			}
+			else
+				throw new SymbolNotFoundError(name);
+		}
+		return toReturn;
+	}
+
+	public Symbol insert(String name) throws RedeclarationError
+	{
+		Map<String,Symbol> currentTable = table.peek();
+		if(currentTable.containsKey(name))
+			throw new RedeclarationError(currentTable.get(name));
+		return table.peek().put(name, new Symbol(name));
+	}
+
+	public String toString()
+	{
+		StringBuffer sb = new StringBuffer();
+		if (table.peek() != null)
+		{
+			String indent = new String();
+			for (int i = 0; i < table.size(); i++) {
+				indent += "  ";
+			}
+
+			for (Symbol s : table.peek().values())
+			{
+				sb.append(indent + s.toString() + "\n");
+			}
+		}
+		return sb.toString();
+
+	}
+}
+
+class SymbolNotFoundError extends Error
+{
+	private static final long serialVersionUID = 1L;
+	private String name;
+
+	SymbolNotFoundError(String name)
+	{
+		this.name = name;
+	}
+
+	public String name()
+	{
+		return name;
+	}
+}
+
+class RedeclarationError extends Error
+{
+	private static final long serialVersionUID = 1L;
+
+	public RedeclarationError(Symbol sym)
+	{
+		super("Symbol " + sym + " being redeclared.");}
+}

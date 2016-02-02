@@ -7,6 +7,8 @@ public class Token {
 	public static String studentID = "79872428";
 	public static String uciNetID = "westl";
 
+	
+	
 
 	//For any words 
 	private static String words = "[a-zA-Z]+";
@@ -15,6 +17,8 @@ public class Token {
 	//Enums create methods such as Values() that we can use to help us later on. 
 	//It doesn't make sense to have any SET methods in the enums because
 	//the advantage of enums is to know the values of them at compile time.
+	
+	
 	public static enum Kind {
 		AND("and"),	
 		OR("or"),
@@ -102,6 +106,9 @@ public class Token {
 		public String getName(){
 			return this.name();
 		}
+		
+		
+		
 
 		public static Kind getKind(String lexeme){	
 			for(Kind k : Kind.values()){
@@ -120,6 +127,8 @@ public class Token {
 			return null;
 		}
 	}
+	
+	
 	private int lineNum;
 	private int charPos;
 	Kind kind;

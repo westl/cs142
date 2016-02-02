@@ -1,3 +1,5 @@
+// test large-ish symbol table, with multiple errors
+
 var gorn : void;
 func main(a:void) : int {
   var b:float;

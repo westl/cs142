@@ -5,6 +5,9 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class SymbolTable {
+	public static String studentName = "Lamar West";
+	public static String studentID = "79872428";
+	public static String uciNetID = "westl";
 	LinkedList<Map<String,Symbol>> table;
 	boolean didNotFind = false;
 	public SymbolTable()

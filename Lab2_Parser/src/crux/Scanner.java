@@ -10,6 +10,8 @@ public class Scanner implements Iterable<Token> {
 	public static String studentID = "79872428";
 	public static String uciNetID = "westl";
 
+	
+	
 	private int lineNum;  // current line count
 	private int charPos;  // character offset for current line
 	private int peakCount; //char pos if we peak

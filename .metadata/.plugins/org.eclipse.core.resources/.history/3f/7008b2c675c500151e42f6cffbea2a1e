@@ -1,0 +1,86 @@
+package crux;
+
+import java.util.LinkedList;
+import java.util.Map;
+
+public class SymbolTable {
+    LinkedList<Map<String,Symbol>> table;
+    Map<String,Symbol> currentTable;
+    int indexOfCurrent = 0 ;
+    public SymbolTable()
+    {
+       table = new LinkedList<Map<String,Symbol>>();
+    }
+    
+    public Symbol lookup(String name) throws SymbolNotFoundError
+    {
+    	Symbol toReturn = null;
+    	for(Map<String,Symbol> innerTable : table){
+    		if(innerTable.containsKey(name)){
+    			toReturn = innerTable.get(name);
+    			break;
+    		}
+    		else
+    			throw new SymbolNotFoundError(name);
+    	}
+        return toReturn;
+    }
+       
+    public Symbol insert(String name) throws RedeclarationError
+    {
+       Symbol toReturn = null;
+       currentTable = table.get(indexOfCurrent);
+       
+       if(currentTable.containsKey(name)){
+    	   throw new RedeclarationError(currentTable.get(name));
+       }
+       else{
+    	   currentTable.put(name, toReturn = new Symbol(name));
+       }
+       return toReturn;
+    }
+    
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer();
+        if (/*I have a parent table*/)
+            sb.append(parent.toString());
+        
+        String indent = new String();
+        for (int i = 0; i < depth; i++) {
+            indent += "  ";
+        }
+        
+        for (/*Every symbol, s, in this table*/)
+        {
+            sb.append(indent + s.toString() + "\n");
+        }
+        return sb.toString();
+    }
+}
+
+class SymbolNotFoundError extends Error
+{
+    private static final long serialVersionUID = 1L;
+    private String name;
+    
+    SymbolNotFoundError(String name)
+    {
+        this.name = name;
+    }
+    
+    public String name()
+    {
+        return name;
+    }
+}
+
+class RedeclarationError extends Error
+{
+    private static final long serialVersionUID = 1L;
+
+    public RedeclarationError(Symbol sym)
+    {
+        super("Symbol " + sym + " being redeclared.");
+    }
+}

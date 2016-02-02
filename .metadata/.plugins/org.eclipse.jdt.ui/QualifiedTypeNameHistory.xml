@@ -2,6 +2,12 @@
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="crux.Token"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
-<fullyQualifiedTypeName name="crux.Token.Kind"/>
 <fullyQualifiedTypeName name="crux.NonTerminal"/>
+<fullyQualifiedTypeName name="jdk.nashorn.internal.parser.TokenKind"/>
+<fullyQualifiedTypeName name="crux.Token.Kind"/>
+<fullyQualifiedTypeName name="java.util.LinkedList"/>
+<fullyQualifiedTypeName name="java.util.Map"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+<fullyQualifiedTypeName name="java.util.Iterator"/>
 </qualifiedTypeNameHistroy>
