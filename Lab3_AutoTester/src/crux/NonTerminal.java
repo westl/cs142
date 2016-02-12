@@ -6,9 +6,7 @@ public enum NonTerminal {
     
 	
 	
-    // TODO: mention that we are not modeling the empty string
-    // TODO: mention that we are not doing a first set for every line in the grammar
-    //       some lines have already been handled by the CruxScanner
+   
 	 OP0(new HashSet<Token.Kind>() {
 	        private static final long serialVersionUID = 1L;
 	        {

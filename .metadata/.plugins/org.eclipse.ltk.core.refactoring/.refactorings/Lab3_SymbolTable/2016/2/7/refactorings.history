@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 5 elements to &apos;Lab4_AbstractSyntaxTree/src/crux&apos;&#x0D;&#x0A;- Original project: &apos;Lab3_SymbolTable&apos;&#x0D;&#x0A;- Destination element: &apos;Lab4_AbstractSyntaxTree/src/crux&apos;&#x0D;&#x0A;- Original elements:&#x0D;&#x0A;     crux.Scanner.java&#x0D;&#x0A;     crux.Symbol.java&#x0D;&#x0A;     crux.SymbolTable.java&#x0D;&#x0A;     crux.NonTerminal.java&#x0D;&#x0A;     crux.Token.java" description="Copy compilation units" destination="=Lab4_AbstractSyntaxTree/src&lt;crux" element1="/src&lt;crux{Scanner.java" element2="/src&lt;crux{Symbol.java" element3="/src&lt;crux{SymbolTable.java" element4="/src&lt;crux{NonTerminal.java" element5="/src&lt;crux{Token.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1455246563765" units="5" version="1.0"/>
+</session>
