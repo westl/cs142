@@ -34,7 +34,7 @@ public abstract class Command implements Visitable {
 		int lineNum = op.lineNumber();
 		int charPos = op.charPosition();
 		
-		switch(op.kind())
+		switch(op.getKind())
 		{
 		case ADD: return new Addition(lineNum, charPos, leftSide, rightSide);
 		case SUB: return new Subtraction(lineNum, charPos, leftSide, rightSide);
@@ -58,7 +58,7 @@ public abstract class Command implements Visitable {
 	
 	public static Expression newLiteral(Token tok)
 	{
-		switch(tok.kind())
+		switch(tok.getKind())
 		{
 		case TRUE: return new LiteralBool(tok.lineNumber(), tok.charPosition(), LiteralBool.Value.TRUE);
 		case FALSE: return new LiteralBool(tok.lineNumber(), tok.charPosition(), LiteralBool.Value.FALSE);

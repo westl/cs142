@@ -9,7 +9,7 @@ public class Compiler {
     public static String studentID = "TODO: Your 8-digit id";
     public static String uciNetID = "TODO: uci-net id";
     
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
         String sourceFilename = args[0];
         
