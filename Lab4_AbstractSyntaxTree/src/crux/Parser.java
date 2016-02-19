@@ -1,12 +1,13 @@
 package crux;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
+
 import ast.Command;
-import ast.DeclarationList;
+import ast.Declaration;
+import ast.Dereference;
 
 public class Parser {
 	public static String studentName = "Lamar West";
@@ -57,7 +58,8 @@ public class Parser {
 		assert(ident.is(Token.Kind.IDENTIFIER));
 		String name = ident.lexeme();
 		try {
-			return symbolTable.insert(name);
+			symbolTable.insert(name);
+			return new Symbol(name);
 		} catch (RedeclarationError re) {
 			String message = reportDeclareSymbolError(name, ident.lineNumber(), ident.charPosition());
 			return new ErrorSymbol(message);
@@ -83,7 +85,7 @@ public class Parser {
 	}
 
 
-	public ast.Command parse()
+	public ast.Command parse() throws IOException
 	{
 		initSymbolTable();
 		try {
@@ -237,105 +239,119 @@ public class Parser {
 	 	}
 
 	 	// designator := IDENTIFIER { "[" expression0 "]" } .
-	 	public void designator() throws IOException
+	 	public ast.Expression designator() throws IOException
 	 	{
-	 		
-
-	 		tryResolveSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
+	 		Token cur = null;
+	 		Token ident = expectRetrieve(Token.Kind.IDENTIFIER);
+	 		Symbol identSym = tryResolveSymbol(ident);
+	 		ast.Expression expr = new ast.AddressOf(ident.lineNumber(), ident.charPosition(), identSym);
 	 		while (accept(Token.Kind.OPEN_BRACKET)) {
-	 			expression0();
+	 			cur = currentToken;
+	 			ast.Expression amount = expression0();
+	 			expr = new ast.Index(cur.lineNumber(), cur.charPosition(), expr, amount);
 	 			expect(Token.Kind.CLOSE_BRACKET);
 	 		}
 
+	 		return expr;
 	 		
 	 	}
 
 
 	 	//type := IDENTIFIER .
-	 	private void type() throws IOException {
+	 	private ast.Expression type() throws IOException {
 	 		// TODO Auto-generated method stub
 	 		//expects IDENTIFIER
-	 		expect(Token.Kind.IDENTIFIER);
+	 		return Command.newLiteral(expectRetrieve(Token.Kind.IDENTIFIER));
 
 	 	}
 
 	 	//op0 := ">=" | "<=" | "!=" | "==" | ">" | "<" .
-	 	private void op0() throws IOException {
+	 	private Token op0() throws IOException {
 	 		// TODO Auto-generated method stub
 	 		//accepts ">=" | "<=" | "!=" | "==" | ">" | "<" .
-	 		
+	 		Token toReturn = null;
 	 		if(NonTerminal.OP0.firstSet.contains(currentToken.kind)){
-	 			accept(currentToken.kind);
+	 			toReturn = expectRetrieve(currentToken.kind);
 	 		}
 	 		else{
 	 			reportError(currentToken.kind);
 	 		}
-
+	 		return toReturn;
 	 	}
 
 	 	//op1 := "+" | "-" | "or" .
-	 	private void op1() throws IOException {
+	 	private Token op1() throws IOException {
 	 		// TODO Auto-generated method stub
 	 		//accepts "+" | "-" | "or" .
-	 		
+	 		Token toReturn = null;
 	 		if(NonTerminal.OP1.firstSet.contains(currentToken.kind)){
-	 			accept(currentToken.kind);
+	 			toReturn = expectRetrieve(currentToken.kind);
 	 		}
 	 		else{
 	 			reportError(currentToken.kind);
 	 		}
-	 
+	 		return toReturn;
 	 	}
 
 	 	//op2 := "*" | "/" | "and" .
-	 	private void op2() throws IOException {
+	 	private Token op2() throws IOException {
 	 		// TODO Auto-generated method stub
 	 		//accepts "*" | "/" | "and" .
-	 	
+	 		Token toReturn = null;
 	 		if(NonTerminal.OP2.firstSet.contains(currentToken.kind)){
-	 			accept(currentToken.kind);
+	 			toReturn = expectRetrieve(currentToken.kind);
 	 		}
 	 		else{
 	 			reportError(currentToken.kind);
 	 		}
+			return toReturn;
 
 	 	}
 
 	 	//expression0 := expression1 [ op0 expression1 ] .
-	 	private void expression0() throws IOException {
+	 	private ast.Expression expression0() throws IOException {
 	 		// TODO Auto-generated method stub
-	 		
-	 		expression1();
+	 		ast.Expression expr = null;
+	 		expr = expression1();
 	 		if(!currentToken.is(Token.Kind.SEMICOLON)){
 	 			if(NonTerminal.OP0.firstSet.contains(currentToken.kind)){
-	 				op0();
-	 				expression1();
+	 				ast.Expression left = expr;
+	 				Token op0 = op0();
+	 				ast.Expression right = expression1();
+	 				expr = Command.newExpression(left, op0, right);
 	 			}
 	 		}
 	 	
-
+	 		return expr;
 	 	}
 	 	//expression1 := expression2 { op1  expression2 } .
-	 	private void expression1() throws IOException {
+	 	private ast.Expression expression1() throws IOException {
 	 		// TODO Auto-generated method stub
-	 		
-	 		expression2();
+	 		ast.Expression expr1 = null;
+	 		expr1 = expression2();
 	 		while(NonTerminal.OP1.firstSet.contains(currentToken.kind)){
-	 			op1();
-	 			expression2();
+	 			ast.Expression left = expr1;
+	 			Token op1 = op1();
+	 			ast.Expression right = expression2();
+	 			expr1 = Command.newExpression(left, op1, right);
 	 		}
 	 	
+	 		return expr1;
 	 	}
 
 	 	//expression2 := expression3 { op2 expression3 } .
-	 	private void expression2() throws IOException {
+	 	private ast.Expression expression2() throws IOException {
 	 		// TODO Auto-generated method stub
-	 	
-	 		expression3();
+	 	ast.Expression expr2 = null;
+	 		expr2 = expression3();
 	 		while(NonTerminal.OP2.firstSet.contains(currentToken.kind)){
-	 			op2();
-	 			expression3();
+	 			ast.Expression left = expr2;
+	 			Token op2 = op2();
+	 			ast.Expression right = expression3();
+	 			expr2 = Command.newExpression(left, op2, right);
 	 		}
+	 		
+	 		return expr2;
 
 	 	}
 
@@ -346,91 +362,108 @@ public class Parser {
 	        | call-expression
 	        | literal .
 	 	 */
-	 	private void expression3() throws IOException {
+	 	private ast.Expression expression3() throws IOException {
 	 		// TODO Auto-generated method stub
-
+	 		ast.Expression expr3 = null;
 	 		if(currentToken.kind.name().equals("NOT")){
-	 			accept(Token.Kind.NOT);
-	 			expression3();
+	 			Token op = expectRetrieve(Token.Kind.NOT);
+	 			ast.Expression right = expression3();
+	 			expr3 = Command.newExpression(right,op ,null);
 	 		}
 	 		else if(currentToken.kind.name().equals("OPEN_PAREN")){
 	 			accept(Token.Kind.OPEN_PAREN);
-	 			expression0();
+	 			expr3 = expression0();
 	 			expect(Token.Kind.CLOSE_PAREN);
 	 		}
 	 		else if(currentToken.kind.name().equals("IDENTIFIER")){
-	 			designator();
+	 			int lineNum = currentToken.lineNumber();
+	 			int charPos = currentToken.charPosition();
+	 			ast.Expression deref = designator();
+	 			expr3 = new ast.Dereference(lineNum, charPos, deref);
 	 		}
 	 		else if(currentToken.kind.name().equals("CALL")){
-	 			call_expression();
+	 			expr3 = call_expression();
 	 		}
 	 		else if(currentToken.kind.name().equals("INTEGER") || currentToken.kind.name().equals("FLOAT") || currentToken.kind.name().equals("TRUE") || currentToken.kind.name().equals("FALSE")){
-	 			literal();
+	 			expr3 = literal();
 	 		}
+			return expr3;
 	 		
 	 	}
 
 	 	//call-expression := "::" IDENTIFIER "(" expression-list ")" .
-	 	private void call_expression() throws IOException {
-	 	
-	 		expect(Token.Kind.CALL);
-	 		tryResolveSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
+	 	private ast.Call call_expression() throws IOException {
+	 		ast.Call call_exp = null; 
+	 		Token callToken = expectRetrieve(Token.Kind.CALL);	
+	 		Symbol sym = tryResolveSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
 	 		expect(Token.Kind.OPEN_PAREN);
-	 		expression_list();
+	 		ast.ExpressionList args = expression_list();
 	 		expect(Token.Kind.CLOSE_PAREN);
+	 		call_exp = new ast.Call(callToken.lineNumber(), callToken.charPosition(), sym, args);
+	 		
+			return call_exp;
 	 	
 	 	}
 	 	//expression-list := [ expression0 { "," expression0 } ] .
-	 	private void expression_list() throws IOException {
-	 		
+	 	private ast.ExpressionList expression_list() throws IOException {
 	 		//expression0();
+	 		ast.ExpressionList expr_list = new ast.ExpressionList(currentToken.lineNumber(), currentToken.charPosition());
 	 		if(!currentToken.kind.name().equals("CLOSE_PAREN")){
-	 			expression0();
+	 			ast.Expression expr = expression0();
+	 			expr_list.add(expr);
 	 			while(!currentToken.kind.name().equals("CLOSE_PAREN")){
 	 				expect(Token.Kind.COMMA);
-	 				expression0();
+	 				expr = expression0();
+	 				expr_list.add(expr);
 	 			}
 	 		}
+			return expr_list;
 	 	
 	 	}
 
 	 	//parameter := IDENTIFIER ":" type .
-	 	private void parameter() throws IOException {
+	 	private Symbol parameter() throws IOException {
 	 	
-	 		tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
+	 		Symbol toReturn = tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
 	 		expect(Token.Kind.COLON);
 	 		type();
+			return toReturn;
 	 	
 	 	}
 
 	 	//parameter-list := [ parameter { "," parameter } ] .
-	 	private void parameter_list() throws IOException {
-	 		
+	 	private List<Symbol> parameter_list() throws IOException {
+	 		List<Symbol> args = new LinkedList<Symbol>();
 	 		if(!currentToken.getKind().name().equals("CLOSE_PAREN")){
-	 			parameter();
+	 			args.add(parameter());
 	 			while(accept(Token.Kind.COMMA)){
-	 				parameter();
+	 				args.add(parameter());
 	 			}
 	 		}
+			return args;
 	 		
 	 	}
 
 	 	//variable-declaration := "var" IDENTIFIER ":" type ";"
-	 	private void variable_declaration() throws IOException{
-	 		
-	 		accept(Token.Kind.VAR);
-	 		tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
+	 	private ast.VariableDeclaration variable_declaration() throws IOException{
+	 		ast.VariableDeclaration varDeclaration;
+	 		Token varToken = expectRetrieve(Token.Kind.VAR);
+	 		Symbol symbol = tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
 	 		expect(Token.Kind.COLON);
 	 		type();
 	 		expect(Token.Kind.SEMICOLON);
+	 		varDeclaration =  new ast.VariableDeclaration(varToken.lineNumber(), varToken.charPosition(), symbol);
+	 		
+			return varDeclaration;
 	 		
 	 	}
 
 	 	//array-declaration := "array" IDENTIFIER ":" type "[" INTEGER "]" { "[" INTEGER "]" } ";"
-	 	private void array_declaration() throws IOException{
-	 	
-	 		accept(Token.Kind.ARRAY);
-	 		expect(Token.Kind.IDENTIFIER);
+	 	private ast.ArrayDeclaration array_declaration() throws IOException{
+	 		ast.ArrayDeclaration array = null;
+	 		Token arrayToken = expectRetrieve(Token.Kind.ARRAY);
+	 		Token ident = expectRetrieve(Token.Kind.IDENTIFIER);
+	 		Symbol symbol = tryDeclareSymbol(ident);
 	 		expect(Token.Kind.COLON);
 	 		type();
 	 		expect(Token.Kind.OPEN_BRACKET);
@@ -442,99 +475,120 @@ public class Parser {
 	 			expect(Token.Kind.CLOSE_BRACKET);
 	 		}
 	 		expect(Token.Kind.SEMICOLON);
+	 		array = new ast.ArrayDeclaration(arrayToken.lineNumber(), arrayToken.charPosition(), symbol);
+			return array;
 	 		
 	 	}
 
 	 	//function-definition := "func" IDENTIFIER "(" parameter-list ")" ":" type statement-block .
-	 	private void function_definition() throws IOException{
-
-	 		expect(Token.Kind.FUNC);
-	 		tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
+	 	private ast.FunctionDefinition function_definition() throws IOException{
+	 		ast.FunctionDefinition funcDef = null;
+	 		Token funcToken = expectRetrieve(Token.Kind.FUNC);
+	 		Symbol symbol = tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
 	 		expect(Token.Kind.OPEN_PAREN);
 	 		enterScope();
-	 		parameter_list();
-	 	
+	 		List<Symbol> args =  parameter_list();
 	 		expect(Token.Kind.CLOSE_PAREN);
 	 		expect(Token.Kind.COLON);
 	 		type();
-	 		statement_block();
+	 		ast.StatementList body = statement_block();
+	 		funcDef = new ast.FunctionDefinition(funcToken.lineNumber(), funcToken.charPosition(), symbol, args, body);
 	 		exitScope();
+	 		
+	 		
+			return funcDef;
 	 	}
 
 	 	//declaration := variable-declaration | array-declaration | function-definition .
-	 	private void declaration() throws IOException{
+	 	private ast.Declaration declaration() throws IOException{
 	 		Token token = this.currentToken;
-	 		
+	 		ast.Declaration declaration = null;
 	 		if(token.getKind().name().equals("VAR")){
-	 			variable_declaration();
+	 			declaration = variable_declaration();
 	 		}
 	 		else if(token.getKind().name().equals("FUNC")){
-	 			function_definition();
+	 			declaration = function_definition();
 	 		}
 	 		else if(token.getKind().name().equals("ARRAY")){
-	 			array_declaration();
+	 			declaration = array_declaration();
 	 		}
 	 		else{
 	 			reportError(token.kind);
 	 		}
+			return declaration;
 	 	
 	 	}
 
 	 	//declaration-list := { declaration } .
-	 	private void declaration_list() throws IOException{
-	 		
-	 		while(NonTerminal.DECLARATION.firstSet.contains(currentToken.kind))
-	 			declaration();
-	 		
-
+	 	private ast.DeclarationList declaration_list() throws IOException{
+	 		ast.DeclarationList declist = new ast.DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+	 		while(NonTerminal.DECLARATION.firstSet.contains(currentToken.kind)){
+	 			ast.Declaration declaration = declaration();
+	 			declist.add(declaration);
+	 		}
+	 		return declist;
 	 	}
+	 	
 	 	//assignment-statement := "let" designator "=" expression0 ";"
-	 	private void assignment_statement() throws IOException{
-
-	 		expect(Token.Kind.LET);
-	 		designator();
+	 	private ast.Assignment assignment_statement() throws IOException{
+	 		ast.Assignment  assignment = null;
+	 		Token letToken = expectRetrieve(Token.Kind.LET);
+	 		ast.Expression dest = designator();
 	 		expect(Token.Kind.ASSIGN);
-	 		expression0();
+	 		ast.Expression source = expression0();
 	 		expect(Token.Kind.SEMICOLON);
+	 		assignment = new ast.Assignment(letToken.lineNumber(), letToken.charPosition(), dest, source);
+			return assignment;
 	 	
 	 	}
 	 	//call-statement := call-expression ";"
-	 	private void call_statement() throws IOException{
-	 		
-	 		call_expression();
+	 	private ast.Call call_statement() throws IOException{
+	 		ast.Call call = null;
+	 		call = call_expression();
 	 		expect(Token.Kind.SEMICOLON);
+			return call;
 	 		
 	 	}
 	 	//if-statement := "if" expression0 statement-block [ "else" statement-block ] .
-	 	private void if_statement() throws IOException{
-	 	
-	 		expect(Token.Kind.IF);
-	 		expression0();
+	 	private ast.IfElseBranch if_statement() throws IOException{
+	 		ast.IfElseBranch if_statement = null;
+	 		Token ifToken = expectRetrieve(Token.Kind.IF);
+	 		ast.Expression cond = expression0();
 	 		enterScope();
-	 		statement_block();
+	 		ast.StatementList thenBlock = statement_block();
+	 		ast.StatementList elseBlock = null;
 	 		if(currentToken.kind.name().equals("ELSE")){
 	 			accept(Token.Kind.ELSE);
-	 			statement_block();
+	 			elseBlock = statement_block();
 	 		}
+	 		else
+	 			elseBlock = new ast.StatementList(currentToken.lineNumber(), currentToken.charPosition());
+	 	
+	 		if_statement = new ast.IfElseBranch(ifToken.lineNumber(), ifToken.charPosition(), cond, thenBlock, elseBlock);
 	 		exitScope();
+	 		
+	 		return if_statement;
 	 		
 	 	}
 	 	//while-statement := "while" expression0 statement-block .
-	 	private void while_statement() throws IOException{
-	 	
-	 		expect(Token.Kind.WHILE);
-	 		expression0();
+	 	private ast.WhileLoop while_statement() throws IOException{
+	 		ast.WhileLoop while_loop = null;
+	 		Token whileToken = expectRetrieve(Token.Kind.WHILE);
+	 		ast.Expression cond = expression0();
 	 		enterScope();
-	 		statement_block();
+	 		ast.StatementList body = statement_block();
 	 		exitScope();
+	 		while_loop = new ast.WhileLoop(whileToken.lineNumber(), whileToken.charPosition(), cond, body);
+	 		return while_loop;
 	 	}
 	 	//return-statement := "return" expression0 ";" .
-	 	private ast.Expression return_statement() throws IOException{
-	 	
-	 		expect(Token.Kind.RETURN);
-	 		expression0();
+	 	private ast.Return return_statement() throws IOException{
+	 		ast.Return return_statement = null;
+	 		Token returnToken = expectRetrieve(Token.Kind.RETURN);
+	 		ast.Expression arg = expression0();
 	 		expect(Token.Kind.SEMICOLON);
-			return null;
+	 		return_statement = new ast.Return(returnToken.lineNumber(), returnToken.charPosition(), arg);
+			return return_statement;
 	 		
 	 	}
 	 	/*statement := variable-declaration
@@ -543,51 +597,51 @@ public class Parser {
 	            | if-statement
 	            | while-statement
 	            | return-statement .*/
-	 	private void statement() throws IOException{
-	 
+	 	private ast.Statement statement() throws IOException{
+	 		ast.Statement statement = null;
 	 		if(currentToken.getKind().name().equals("VAR")){
-	 			variable_declaration();
+	 			statement = variable_declaration();
 	 		}
 	 		else if(currentToken.getKind().name().equals("CALL")){
-	 			call_statement();
+	 			statement = call_statement();
 	 		}
 	 		else if(currentToken.getKind().name().equals("LET")){
-	 			assignment_statement();
+	 			statement = assignment_statement();
 	 		}
 	 		else if(currentToken.getKind().name().equals("IF")){
-	 			if_statement();
+	 			statement = if_statement();
 	 		}
 	 		else if(currentToken.getKind().name().equals("WHILE")){
-	 			while_statement();
+	 			statement = while_statement();
 	 		}
 	 		else if(currentToken.getKind().name().equals("RETURN")){
-	 			return_statement();
+	 			statement = return_statement();
 	 		}
 	 		else{
 	 			reportError(Token.Kind.CLOSE_BRACE);
 	 		}
-
-	 		
+			return statement;
 	 	}
 	 	//statement-list := { statement } .
-	 	private ast.Statement statement_list() throws IOException{
-	 
+	 	private ast.StatementList statement_list() throws IOException{
+	 		ast.StatementList statement_list  = new ast.StatementList(currentToken.lineNumber(), currentToken.charPosition());
 	 		while(this.currentToken.kind != Token.Kind.CLOSE_BRACE)
-	 			statement();
-			return null;
+	 			statement_list.add(statement());
+			
+	 		return statement_list;
 	 		
 	 	}
 	 	//statement-block := "{" statement-list "}" .
 	 	private ast.StatementList statement_block() throws IOException{
 	 		expect(Token.Kind.OPEN_BRACE);
-	 		statement_list();
+	 		ast.StatementList stment_list  = statement_list();
 	 		expect(Token.Kind.CLOSE_BRACE);
-			return null;
+			return stment_list;
 	 	}
 	 	// program := declaration-list EOF .
 	 	public ast.DeclarationList program() throws IOException
 	 	{
-	 		ast.DeclarationList declist = null;
+	 		
 	 		
 	 		LinkedHashMap<String,Symbol> defaults = new LinkedHashMap<String,Symbol>();
 	 		defaults.put("readInt", new Symbol("readInt"));
@@ -600,7 +654,7 @@ public class Parser {
 	 		symbolTable.table.peekFirst().putAll(defaults);
 	 		// if(expect(NonTerminal.DECLARATION_LIST))
 	 
-	 		declaration_list();
+	 		ast.DeclarationList declist  = declaration_list();
 	 		//expect(Token.Kind.EOF);
 	 	   return declist;
 	 	}

@@ -34,6 +34,8 @@ public class Scanner implements Iterable<Token> {
 	private boolean lookingForward = false;
 	//For when we reach a comment
 	private boolean isComment = false;
+	private boolean callFound = false;
+	private int badPos= 0; 
 	Scanner(Reader reader)
 	{
 		// TODO: initialize the Scanner
@@ -51,7 +53,8 @@ public class Scanner implements Iterable<Token> {
 
 	private int readChar() throws IOException {
 		int currentChar = input.read();
-		charPos++;
+		//if(!callFound)
+			charPos++;
 		//Check to see if the line is a comment
 		if(isComment){
 			while(currentChar != 10)
@@ -66,11 +69,12 @@ public class Scanner implements Iterable<Token> {
 		//If our string builder is empty when hitting a new line or space we want to continue reading 
 		//until we get an actual token
 		while( (currentChar == 32 && sb.length() == 0)  || (currentChar == 10 && sb.length() == 0) ){
-	
 			charPos++;
 			if(currentChar == 10){
 				lineNum++;
-				charPos=1;
+				charPos= 1;
+				badPos = 0 ; 
+				posFound = 1;
 				lookingForward=false;
 			}
 			currentChar = input.read();
@@ -88,7 +92,15 @@ public class Scanner implements Iterable<Token> {
 	{
 
 		if(lookingForward == false){
+			
+			if(badPos > 0 )
+				posFound = badPos;
+			else{
+				badPos = 0;
+				posFound = charPos;
+			}
 			nextChar = readChar();
+			callFound = false;
 		}
 		int currentChar = nextChar;
 		Token tobeReturned = null;
@@ -107,8 +119,12 @@ public class Scanner implements Iterable<Token> {
 				}
 				//possible character found
 				if(!lookingForward)
-					posFound = charPos;
-				
+					if(badPos > 0 )
+						posFound = badPos;
+					else{
+						badPos = 0;
+						posFound = charPos;
+					}
 				lookingForward=true;
 				nextChar = readChar();
 
@@ -117,33 +133,41 @@ public class Scanner implements Iterable<Token> {
 
 			String spoiledToken = Character.toString((char)sb.charAt(sb.toString().length()-1));
 			lookingForward=false;
-
+			
 			if(spoiledToken.matches(badChars)|| nextChar ==-1){
 				sb.deleteCharAt(sb.toString().length()-1);
 			}	
 			else
 				sb = new StringBuilder(sb.deleteCharAt(sb.toString().length()-1));
 			//start a new string builder with the valid item so we remove the spoiled token
-			tobeReturned = tokenize(sb.toString());
 			
 			//only happens when calls are hit
 			if(sb.toString().equals("::")){
-				charPos--;
+				posFound = charPos - 2 ;	
 			}
-		
+			tobeReturned = tokenize(sb.toString());
+			
+			if(!spoiledToken.equals(" "))
+				badPos = charPos;
+			else
+				badPos = 0;
 			//since the token that was valid is created, restart the stringbuilder
 			//with the last token we seen
 			if(spoiledToken.contains("\n")){
 				lineNum++;
-				charPos= 0 ;
+				charPos= 0;
+				posFound = 0 ;
+				badPos = 0;
 				//System.out.println("NEW LINE REACHED");
 			}
 			sb = new StringBuilder();
 			if(!spoiledToken.matches(badChars) && nextChar != -1){
 				sb.append(spoiledToken);
 			}
-			else
+			else{
 				return (tobeReturned != null ? tobeReturned :  null);	
+			}
+				
 		}
 		else{
 			//must be EOF
